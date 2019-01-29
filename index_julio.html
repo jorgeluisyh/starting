@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset = "UTF-8" />
+		<meta name = "viewport" content="width=device-width, initial scale =1"/>
+		<title>
+			EDICION JULIO: MAPA DISTRITOS DE LIMA
+		</title>
+		<!--Leaflet-->
+		<!--PRUEBA MAPA DISTRITOS DE LIMA-->
+		<link rel= "stylesheet" href= "lib/leaflet/leaflet.css"/>
+		<script src= "lib/leaflet/leaflet.js"></script>
+		<script src= "https://openlayers.org/en/v4.6.5/build/ol.js"></script>
+		<script src= "lib/leaflet/Bing.js"></script>
+		<script src="data/qgisdata.geojson"></script>
+		<script src="data/LIMA_CALLAO.geojson"></script>	
+		<script src="data/PROV.geojson"></script>
+		<style type= "text/css">
+			#map{height: 800px;}
+
+		</style>
+	</head>
+	<body>
+		<h1>LIMA METROPOLITANA PRUEBAS WEB GIS</h1>
+		<div id="map"></div>
+		<script>
+			var mapas_Distritos;
+			var mapasLayer
+			function ResaltarFeature(e){
+				var capa = e.target;
+				capa.setStyle(
+					{	
+						weight:2,
+						color: 'black',
+						fillColor: 'gray',
+						fillOpacity: 0.5,
+						dashArray:3,
+					}
+				);
+								}
+			
+			function ResetResaltar(e){
+				mapas_Distritos.resetStyle(e.target);	
+				}
+				
+			function zoomToFeature(e){
+				map.fitBounds(e.target.getBounds());
+				}
+
+			function popup(feature,layer){
+						layer.bindPopup(feature.properties.CONOS_LIMA+'<br/>'+feature.properties.NOMBPROV_1);
+						}
+										
+			function enCadaCapa(feature,layer){
+				var ubi = 'CONO : '
+				var dist = 'DISTRITO : '
+				layer.bindPopup(ubi+'<b>'+feature.properties.CONOS_LIMA+'</b>'+'<br/>'+dist+'<b>'+feature.properties.NOMBDIST_1+'</b>');
+				layer.on(
+					{
+						mouseover: ResaltarFeature,
+						mouseout: ResetResaltar,
+						click : zoomToFeature
+					}
+				)
+				}
+				
+			function querycolor(field){
+				if (field=='LIMA_CENTRO'){
+					return 'rgb(190,80,70)'
+				}else if(field == 'CONO_NORTE'){
+					return 'rgb(202,0,32)';
+				}else if(field == 'CONO_SUR'){
+					return 'rgb(244,165,130)';
+				}else if(field == 'CONO_ESTE'){
+					return 'rgb(255,255,190)';
+				}else if(field == 'CONO_OESTE'){
+					return 'rgb(146,197,222)'
+				}
+			}
+
+			function ShapeStyle(feature){
+				return{
+					fillColor :querycolor(feature.properties.CONOS_LIMA),
+					weight: 1.1,
+					opacity: 1,
+					color : 'white',
+					dashArray: 3,
+					fillOpacity: 0.6,					
+				}
+			}	
+			var map = L.map('map').setView([-11, -75], 10);
+			var googleLayer= new L.BingLayer();
+			map.addLayer(googleLayer);
+			mapasLayer =L.geoJson(
+				L_MAPA,
+				{
+					style:ShapeStyle,
+					onEachFeature : function(feature,layer){
+						layer.bindPopup(feature.properties.NOMBPROV_1);
+						}
+				}
+			).addTo(map);
+			mapas_Distritos = L.geoJson(
+				LIMA_CALLAO,
+				{
+					style: ShapeStyle,
+					onEachFeature : enCadaCapa
+					}
+			).addTo(map);
+			
+			map.fitBounds(mapasLayer.getBounds());
+			L.control.scale().addTo(map);
+			
+		</script>
+	</body>
+</html>

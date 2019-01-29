@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset = "UTF-8" />
+		<meta name = "viewport" content="width=device-width, initial scale =1"/>
+		<title>
+			EDICION JULIO: MAPA DISTRITOS DE LIMA
+		</title>
+		<!--Leaflet-->
+		<!--PRUEBA MAPA DISTRITOS DE LIMA-->
+		<link rel= "stylesheet" href= "lib/leaflet/leaflet.css"/>
+		<link rel="stylesheet" href="lib/leaflet/leaflet-search.css" />
+
+		<style type= "text/css">
+			#map{height: 600px;border:2px solid red;}
+			#body{background:#C5FCFC}
+		</style>
+	</head>
+	<body>
+		<h1>LIMA METROPOLITANA PRUEBAS WEB GIS</h1>
+		<div id="map"></div>
+		<script src= "lib/leaflet/leaflet.js"></script>
+		<script src="data/qgisdata.geojson"></script>
+		<script src="data/LIMA_CALLAO.geojson"></script>	
+		<script src="data/PROV.geojson"></script>
+		<script src="lib/leaflet/leaflet-search.js"></script>
+		<script>
+			var mapas_Distritos;
+			var mapasLayer
+			function ResaltarFeature(e){
+				var capa = e.target;
+				capa.setStyle(
+					{	
+						weight:2,
+						color: 'black',
+						fillColor: 'gray',
+						fillOpacity: 0.5,
+						dashArray:3,
+					}
+				);
+								}
+			
+			function ResetResaltar(e){
+				mapas_Distritos.resetStyle(e.target);	
+				}
+				
+			function zoomToFeature(e){
+				map.fitBounds(e.target.getBounds());
+				console.log(e.target.getBounds())
+				}
+
+			function popup(feature,layer){
+						layer.bindPopup(feature.properties.CONOS_LIMA+'<br/>'+feature.properties.NOMBPROV_1);
+						}
+										
+			function enCadaCapa(feature,layer){
+				var ubi = 'CONO : '
+				var dist = 'DISTRITO : '
+				layer.bindPopup(ubi+'<b>'+feature.properties.CONOS_LIMA+'</b>'+'<br/>'+dist+'<b>'+feature.properties.NOMBDIST_1+'</b>');
+				layer.on(
+					{
+						mouseover: ResaltarFeature,
+						mouseout: ResetResaltar,
+						click : zoomToFeature
+					}
+				)
+				}
+				
+			function querycolor(field){
+				if (field=='LIMA_CENTRO'){
+					return 'rgb(190,80,70)'
+				}else if(field == 'CONO_NORTE'){
+					return 'rgb(202,0,32)';
+				}else if(field == 'CONO_SUR'){
+					return 'rgb(244,165,130)';
+				}else if(field == 'CONO_ESTE'){
+					return 'rgb(255,255,190)';
+				}else if(field == 'CONO_OESTE'){
+					return 'rgb(146,197,222)'
+				}else if(field == null){
+					return 'rgb(11,200,235)'
+			}}
+
+			function ShapeStyle(feature){
+				return{
+					fillColor :querycolor(feature.properties.CONOS_LIMA),
+					weight: 1.1,
+					opacity: 1,
+					color : 'white',
+					dashArray: 3,
+					fillOpacity: 0.5,					
+				}
+			};	
+			var map = L.map('map').setView([-11, -75], 10);
+
+			mapasLayer =L.geoJson(
+				L_MAPA,
+				{
+					style:ShapeStyle,
+					onEachFeature : function(feature,layer){
+						layer.bindPopup(feature.properties.NOMBPROV_1);
+						}
+				}
+			).addTo(map);
+			mapas_Distritos = L.geoJson(
+				LIMA_CALLAO,
+				{
+					style: ShapeStyle,
+					onEachFeature : enCadaCapa
+					}
+			).addTo(map);
+			map.fitBounds(mapas_Distritos.getBounds());
+			L.control.scale().addTo(map);
+			
+			OpenStreetMap=L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+			maxZoom:19,
+			attribution:'&copy; <a href="http://openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+			}).addTo(map);
+
+			L.control.layers({
+			'OpenStreetMap': OpenStreetMap,
+			"google": L.tileLayer('http://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}', 
+			{attribution: 'google'
+			})
+			},{'Distritos de Lima':mapas_Distritos,'Departamentos':mapasLayer}).addTo(map);
+			var searchControl = new L.Control.Search({
+				layer: mapas_Distritos,
+				propertyName: 'NOMBDIST_1',
+				marker: false,
+				moveToLocation: function(latlng, title, map) {
+			//map.fitBounds( latlng.layer.getBounds() );
+			var zoom = map.getBoundsZoom(latlng.layer.getBounds());
+  			map.setView(latlng, zoom); // access the zoom
+		}
+	});
+
+	searchControl.on('search:locationfound', function(e) {
+		
+		console.log('search:locationfound', );
+
+		//map.removeLayer(this._markerSearch)
+
+		e.layer.setStyle({fillColor: '#3f0', color: '#0f0'});
+		if(e.layer._popup)
+			e.layer.openPopup();
+
+	}).on('search:collapsed', function(e) {
+
+		mapas_Distritos.eachLayer(function(layer) {	//restore feature color
+			mapas_Distritos.resetStyle(layer);
+		});	
+	});
+	
+	map.addControl( searchControl );  //inizialize search control
+			
+		</script>
+	</body>
+</html>
