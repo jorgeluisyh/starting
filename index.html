@@ -8,25 +8,34 @@
 		</title>
 		<!--Leaflet-->
 		<!--PRUEBA MAPA DISTRITOS DE LIMA-->
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
 		<link rel= "stylesheet" href= "lib/leaflet/leaflet.css"/>
 		<link rel="stylesheet" href="lib/leaflet/leaflet-search.css" />
 
 		<style type= "text/css">
 			#map{height: 600px;border:2px solid blue;}
 			#body{background:#C5FCFC}
+
 		</style>
 	</head>
 	<body>
-		<h1>LIMA METROPOLITANA PRUEBAS WEB GIS</h1>
-		<div id="map"></div>
+		<div class="container-fluid mt-4">
+			<h2 class="text-center">LIMA METROPOLITANA PRUEBAS WEB GIS usuario1</h2>			
+		</div>
+		<div class="container-fluid mt-4">
+			<div id="map"></div>		
+		</div>
 		<script src= "lib/leaflet/leaflet.js"></script>
 		<script src="data/qgisdata.geojson"></script>
-		<script src="data/LIMA_CALLAO.geojson"></script>	
+		<script src="data/LIMA_CALLAO.geojson"></script>
+		<script src="data/L_DEPARTAMENTO.geojson"></script>	
+
 		<script src="data/PROV.geojson"></script>
 		<script src="lib/leaflet/leaflet-search.js"></script>
 		<script>
 			var mapas_Distritos;
-			var mapasLayer
+			var mapas_Departamentos
 			function ResaltarFeature(e){
 				var capa = e.target;
 				capa.setStyle(
@@ -78,7 +87,7 @@
 				}else if(field == 'CONO_OESTE'){
 					return 'rgb(146,197,222)'
 				}else if(field == null){
-					return 'rgb(11,200,235)'
+					return 'rgb(202, 211, 211)'
 			}}
 
 			function ShapeStyle(feature){
@@ -88,20 +97,31 @@
 					opacity: 1,
 					color : 'white',
 					dashArray: 3,
-					fillOpacity: 0.5,					
+					fillOpacity: 0.4,					
 				}
 			};	
-			var map = L.map('map').setView([-11, -75], 10);
 
-			mapasLayer =L.geoJson(
-				L_MAPA,
+			function DepaStyle(feature){
+				return{
+					fillColor :querycolor(feature.properties.CONOS_LIMA),
+					weight: 1.1,
+					opacity: 1,
+					color : 'white',
+					dashArray: 4,
+					fillOpacity: 0.7,					
+				}
+			};	
+			var map = L.map('map', {zoomControl: true}).setView([-11, -75], 10);
+
+			mapas_Departamentos =L.geoJson(
+				L_DEPARTAMENTO,
 				{
-					style:ShapeStyle,
+					style:DepaStyle,
 					onEachFeature : function(feature,layer){
 						layer.bindPopup(feature.properties.NOMBPROV_1);
 						}
 				}
-			).addTo(map);
+			);
 			mapas_Distritos = L.geoJson(
 				LIMA_CALLAO,
 				{
@@ -119,10 +139,10 @@
 
 			L.control.layers({
 			'OpenStreetMap': OpenStreetMap,
-			"google": L.tileLayer('http://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}', 
-			{attribution: 'google'
+			"Google": L.tileLayer('http://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}', 
+			{attribution: 'Google'
 			})
-			},{'Distritos de Lima':mapas_Distritos,'Departamentos':mapasLayer}).addTo(map);
+			},{'Distritos de Lima':mapas_Distritos,'Departamentos':mapas_Departamentos}).addTo(map);
 			var searchControl = new L.Control.Search({
 				layer: mapas_Distritos,
 				propertyName: 'NOMBDIST_1',
@@ -154,5 +174,9 @@
 	map.addControl( searchControl );  //inizialize search control
 			
 		</script>
+	
+		<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+		<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+		<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
 	</body>
 </html>
